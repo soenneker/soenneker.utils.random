@@ -64,4 +64,4 @@ jobs:
         run: dotnet nuget push **\*.nupkg --source 'https://api.nuget.org/v3/index.json' --api-key ${{secrets.NUGET_API_KEY}} --skip-duplicate
       
       - name: Publish to GitHub
-        run: dotnet nuget push **\*.nupkg --source 'https://nuget.pkg.github.com/soenneker/soenneker.utils.random/index.json' --api-key ${{secrets.RELEASE_API_KEY}} --skip-duplicate
+        run: dotnet nuget push **\*.nupkg --source 'github' --api-key ${{secrets.RELEASE_API_KEY}} --skip-duplicate 
