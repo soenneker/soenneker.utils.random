@@ -3,7 +3,7 @@
 [![](https://img.shields.io/nuget/dt/Soenneker.Utils.Random.svg?style=for-the-badge)](https://www.nuget.org/packages/Soenneker.Utils.Random/)
 
 # Soenneker.Utils.Random
-### A tiny thread-safe random utility library (.NET 6+)
+### A tiny thread-safe random utility library
 
 ## Installation
 
