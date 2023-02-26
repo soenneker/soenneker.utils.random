@@ -4,8 +4,11 @@ using System.Diagnostics.Contracts;
 namespace Soenneker.Utils.Random;
 
 /// <summary>
-/// Wraps <see cref="System.Random.Shared"/> (thread-safe) and implements a few additional methods
+/// A thread-safe random utility library
 /// </summary>
+/// <remarks>
+/// Wraps <see cref="System.Random.Shared"/> and implements additional methods
+/// </remarks>
 public static class RandomUtil
 {
     /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
@@ -43,6 +46,8 @@ public static class RandomUtil
         return System.Random.Shared.NextDouble();
     }
 
+    /// <summary>Returns a random floating-point number that is between the range specified.</summary>
+    /// <returns>A double-precision floating point number that is between the range specified.</returns>
     [Pure]
     public static double NextDouble(double minValue, double maxValue)
     {
@@ -50,6 +55,57 @@ public static class RandomUtil
         return result;
     }
 
+    /// <summary>
+    /// Returns an Int32 with a random value across the entire range of possible values.
+    /// </summary>
+    [Pure]
+    public static int NextInt32()
+    {
+        int firstBits = System.Random.Shared.Next(0, 1 << 4) << 28;
+        int lastBits = System.Random.Shared.Next(0, 1 << 28);
+        return firstBits | lastBits;
+    }
+
+    /// <summary>
+    /// Provides a random decimal value in the range with a uniform and discrete distribution.
+    /// </summary>
+    /// <returns>Values [0.0000000000000000000000000000, 0.9999999999999999999999999999)</returns>
+    [Pure]
+    public static decimal NextDecimalUniform()
+    {
+        var result = 1m;
+
+        // Essentially shouldn't ever happen that loops, but we have this here just in case
+        while (result >= 1)
+        {
+            int a = NextInt32();
+            int b = NextInt32();
+            //The bits for 0.9999999999999999999999999999m are 542101086
+            int c = System.Random.Shared.Next(542101087);
+            result = new decimal(a, b, c, false, 28);
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Provides a random decimal value in the range with a uniform and discrete distribution.
+    /// </summary>
+    [Pure]
+    public static decimal NextDecimalUniform(decimal minValue, decimal maxValue, int? roundingDigits = null)
+    {
+        decimal nextDecimalUniform = NextDecimalUniform();
+        decimal result = maxValue * nextDecimalUniform + minValue * (1 - nextDecimalUniform);
+
+        if (roundingDigits != null)
+            result = Math.Round(result, roundingDigits.Value);
+
+        return result;
+    }
+
+    /// <summary>
+    /// Provides a floating-point number between the range (using <see cref="NextDouble()"/>). For a uniform and discrete decimal, use <see cref="NextDecimalUniform()"/>. 
+    /// </summary>
     [Pure]
     public static decimal NextDecimal(decimal minValue, decimal maxValue, int? roundingDigits = null)
     {

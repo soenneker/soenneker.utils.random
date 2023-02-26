@@ -3,7 +3,7 @@
 [![](https://img.shields.io/nuget/dt/Soenneker.Utils.Random.svg?style=for-the-badge)](https://www.nuget.org/packages/Soenneker.Utils.Random/)
 
 # Soenneker.Utils.Random
-### A tiny thread-safe random utility library
+### A thread-safe random utility library
 
 ## Installation
 
@@ -23,4 +23,7 @@ RandomUtil.Next(5, 20);
 RandomUtil.NextDouble(5, 20);
 ```
 
-etc.
+```csharp
+// Returns a random number with a uniform and discrete distribution
+RandomUtil.NextDecimalUniform(5, 20);
+```
