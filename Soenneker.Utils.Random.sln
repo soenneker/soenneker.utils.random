@@ -5,7 +5,7 @@ VisualStudioVersion = 17.5.33209.295
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Soenneker.Utils.Random", "src\Soenneker.Utils.Random.csproj", "{41850636-33B4-4228-AE59-A2113F66B9FA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Soenneker.Utils.Random.Tests", "test\Soenneker.Utils.Random.Tests\Soenneker.Utils.Random.Tests.csproj", "{E8856609-C5F5-45BC-ADFA-5E3EEE012DD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Soenneker.Utils.Random.Tests", "test\Soenneker.Utils.Random.Tests.csproj", "{E8856609-C5F5-45BC-ADFA-5E3EEE012DD1}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{D51485F8-72B4-49A4-BCBE-AFF6BA916E74}"
 	ProjectSection(SolutionItems) = preProject
@@ -17,6 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\automerge.yml = .github\workflows\automerge.yml
 		.github\workflows\buildandtest.yml = .github\workflows\buildandtest.yml
 		.github\workflows\publish.yml = .github\workflows\publish.yml
+		.github\workflows\reenable-automerge.yml = .github\workflows\reenable-automerge.yml
 	EndProjectSection
 EndProject
 Global
