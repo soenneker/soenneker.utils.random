@@ -9,14 +9,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Soenneker.Utils.Random.Test
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".github", ".github", "{D51485F8-72B4-49A4-BCBE-AFF6BA916E74}"
 	ProjectSection(SolutionItems) = preProject
-		.github\dependabot.yml = .github\dependabot.yml
+		.github\renovate.json = .github\renovate.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{F6061475-235E-451B-A8BD-B08147A61373}"
 	ProjectSection(SolutionItems) = preProject
 		.github\workflows\automerge.yml = .github\workflows\automerge.yml
-		.github\workflows\buildandtest.yml = .github\workflows\buildandtest.yml
-		.github\workflows\publish.yml = .github\workflows\publish.yml
+		.github\workflows\build-and-test.yml = .github\workflows\build-and-test.yml
+		.github\workflows\publish-package.yml = .github\workflows\publish-package.yml
 		.github\workflows\reenable-automerge.yml = .github\workflows\reenable-automerge.yml
 	EndProjectSection
 EndProject
