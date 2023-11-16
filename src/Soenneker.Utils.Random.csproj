@@ -9,7 +9,7 @@
 
     <PropertyGroup>
         <Description>A thread-safe random utility library</Description>
-        <Version Condition="'$(BUILD_VERSION)' == ''">2.0.0</Version>
+        <Version Condition="'$(BUILD_VERSION)' == ''">2.1.0</Version>
         <Version Condition="'$(BUILD_VERSION)' != ''">$(BUILD_VERSION)</Version>
         <AssemblyName>Soenneker.Utils.Random</AssemblyName>
         <PackageId>Soenneker.Utils.Random</PackageId>
