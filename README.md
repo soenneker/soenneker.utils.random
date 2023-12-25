@@ -8,7 +8,7 @@
 ## Installation
 
 ```
-Install-Package Soenneker.Utils.Random
+dotnet add package Soenneker.Utils.Random
 ```
 
 ## Usage
