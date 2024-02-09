@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 
 namespace Soenneker.Utils.Random;
@@ -106,6 +107,7 @@ public static class RandomUtil
     /// <summary>
     /// Provides a floating-point number between the range (using <see cref="NextDouble()"/>). For a uniform and discrete decimal, use <see cref="NextDecimalUniform()"/>. 
     /// </summary>
+    /// 
     [Pure]
     public static decimal NextDecimal(decimal minValue, decimal maxValue, int? roundingDigits = null)
     {
@@ -115,5 +117,38 @@ public static class RandomUtil
             result = Math.Round(result, roundingDigits.Value);
 
         return result;
+    }
+
+    [Pure]
+    public static T WeightedRandomSelection<T>(List<T> items, List<int> weights)
+    {
+        if (items.Count != weights.Count || items.Count == 0)
+        {
+            throw new ArgumentException("Invalid input: items and weights must have the same length and not be empty.");
+        }
+
+        double totalWeight = 0;
+
+        foreach (int weight in weights)
+        {
+            totalWeight += weight;
+        }
+
+        double randomValue = NextDouble() * totalWeight;
+
+        double cumulativeWeight = 0;
+
+        for (int i = 0; i < items.Count; i++)
+        {
+            cumulativeWeight += weights[i];
+
+            if (randomValue < cumulativeWeight)
+            {
+                return items[i];
+            }
+        }
+
+        // This line should never be reached, but included for compiler satisfaction
+        return items[items.Count - 1];
     }
 }
