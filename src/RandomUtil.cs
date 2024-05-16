@@ -120,25 +120,35 @@ public static class RandomUtil
     }
 
     [Pure]
-    public static T WeightedRandomSelection<T>(List<T> items, List<int> weights)
+    public static T WeightedRandomSelection<T>(List<T> items, List<double> weights)
     {
-        if (items.Count != weights.Count || items.Count == 0)
-        {
+        ArgumentNullException.ThrowIfNull(items, nameof(items));
+        ArgumentNullException.ThrowIfNull(weights, nameof(weights));
+
+        if (items.Count == 0 || items.Count != weights.Count)
             throw new ArgumentException("Invalid input: items and weights must have the same length and not be empty.");
-        }
 
         double totalWeight = 0;
 
-        foreach (int weight in weights)
+        for (var i = 0; i < weights.Count; i++)
         {
+            double weight = weights[i];
+
+            if (weight < 0)
+                throw new ArgumentException("All weights must be non-negative.");
+
             totalWeight += weight;
         }
+
+        // Total weight must be greater than zero for a valid selection. (All have 0 chance?)
+        if (totalWeight == 0)
+            throw new ArgumentException("Total weight must be greater than zero.");
 
         double randomValue = NextDouble() * totalWeight;
 
         double cumulativeWeight = 0;
 
-        for (int i = 0; i < items.Count; i++)
+        for (var i = 0; i < items.Count; i++)
         {
             cumulativeWeight += weights[i];
 

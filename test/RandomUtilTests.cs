@@ -53,8 +53,19 @@ public class RandomUtilTests
     [Fact]
     public void WeightedRandomSelection_should_give_back_result()
     {
-        List<string> items = new List<string> { "A", "B", "C" };
-        List<int> weights = new List<int> { 3, 10, 2 };
+        List<string> items =
+        [
+            "A",
+            "B",
+            "C"
+        ];
+
+        List<double> weights =
+        [
+            3,
+            10,
+            2
+        ];
 
         for (int i = 0; i < 20; i++)
         {
