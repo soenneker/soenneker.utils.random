@@ -67,7 +67,7 @@ public class RandomUtilTests
             2
         ];
 
-        for (int i = 0; i < 20; i++)
+        for (var i = 0; i < 20; i++)
         {
             string selected = RandomUtil.WeightedRandomSelection(items, weights);
             selected.Should().NotBeNull();
