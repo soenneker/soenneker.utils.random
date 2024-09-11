@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
 
 namespace Soenneker.Utils.Random;
 
@@ -20,6 +21,7 @@ public static class RandomUtil
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue"/> is less than 0.</exception>
     [Pure]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Next(int maxValue)
     {
         return System.Random.Shared.Next(maxValue);
@@ -34,6 +36,7 @@ public static class RandomUtil
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="minValue"/> is greater than <paramref name="maxValue"/>.</exception>
     [Pure]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Next(int minValue, int maxValue)
     {
         return System.Random.Shared.Next(minValue, maxValue);
@@ -42,6 +45,7 @@ public static class RandomUtil
     /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
     /// <returns>A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
     [Pure]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double NextDouble()
     {
         return System.Random.Shared.NextDouble();
@@ -50,10 +54,10 @@ public static class RandomUtil
     /// <summary>Returns a random floating-point number that is between the range specified.</summary>
     /// <returns>A double-precision floating point number that is between the range specified.</returns>
     [Pure]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double NextDouble(double minValue, double maxValue)
     {
-        double result = NextDouble() * (maxValue - minValue) + minValue;
-        return result;
+        return NextDouble() * (maxValue - minValue) + minValue;
     }
 
     /// <summary>
