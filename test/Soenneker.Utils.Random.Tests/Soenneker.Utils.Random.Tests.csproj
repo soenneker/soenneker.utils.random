@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\src\Soenneker.Utils.Random.csproj" />
+    <ProjectReference Include="..\..\src\Soenneker.Utils.Random.csproj" />
   </ItemGroup>
 
 </Project>
