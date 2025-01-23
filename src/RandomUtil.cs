@@ -158,6 +158,6 @@ public static class RandomUtil
         }
 
         // This line should never be reached, but included for compiler satisfaction
-        return items[items.Count - 1];
+        return items[^1];
     }
 }
