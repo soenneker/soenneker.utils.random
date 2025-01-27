@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace Soenneker.Utils.Random;
 
@@ -159,5 +162,46 @@ public static class RandomUtil
 
         // This line should never be reached, but included for compiler satisfaction
         return items[^1];
+    }
+
+    /// <summary>
+    /// Asynchronously delays execution for a random duration between the specified minimum and maximum values.
+    /// </summary>
+    /// <param name="minValue">The minimum delay duration in milliseconds. Must be non-negative.</param>
+    /// <param name="maxValue">The maximum delay duration in milliseconds. Must be greater than or equal to <paramref name="minValue"/>.</param>
+    /// <param name="logger">An optional logger to log the delay duration and cancellation events.</param>
+    /// <param name="cancellationToken">A token to observe while waiting for the delay to complete.</param>
+    /// <returns>A <see cref="ValueTask"/> representing the asynchronous delay operation.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown if <paramref name="minValue"/> is negative or if <paramref name="maxValue"/> is less than <paramref name="minValue"/>.
+    /// </exception>
+    /// <exception cref="TaskCanceledException">
+    /// Thrown if the delay is canceled via the <paramref name="cancellationToken"/>.
+    /// </exception>
+    /// <remarks>
+    /// This method uses a random delay duration generated between <paramref name="minValue"/> and <paramref name="maxValue"/> milliseconds.
+    /// It logs the delay duration before initiating the delay and logs a cancellation message if the delay is canceled.
+    /// 
+    /// **Usage Considerations:**
+    /// - **ValueTask Constraints:** Consumers should await the returned <see cref="ValueTask"/> only once and avoid storing it for later use to prevent undefined behavior.
+    /// - **Logging:** Ensure that the provided <paramref name="logger"/> is appropriately configured to handle debug-level logs.
+    /// - **Cancellation:** If the operation is canceled, a <see cref="TaskCanceledException"/> is rethrown to allow higher-level handlers to respond accordingly.
+    /// </remarks>
+    public static async ValueTask Delay(int minValue, int maxValue, ILogger? logger, CancellationToken cancellationToken = default)
+    {
+        int ms = Next(minValue, maxValue);
+
+        logger?.LogDebug("Delaying for {}ms...", ms);
+
+        try
+        {
+            await Task.Delay(ms, cancellationToken).ConfigureAwait(false);
+        }
+        catch (TaskCanceledException)
+        {
+            // Optionally log the cancellation
+            logger?.LogDebug("Delay was canceled ");
+            throw;
+        }
     }
 }
