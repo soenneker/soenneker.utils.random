@@ -191,7 +191,7 @@ public static class RandomUtil
     {
         int ms = Next(minValue, maxValue);
 
-        logger?.LogDebug("Delaying for {}ms...", ms);
+        logger?.LogDebug("Delaying for {ms}ms...", ms);
 
         try
         {
