@@ -187,7 +187,7 @@ public static class RandomUtil
     /// - **Logging:** Ensure that the provided <paramref name="logger"/> is appropriately configured to handle debug-level logs.
     /// - **Cancellation:** If the operation is canceled, a <see cref="TaskCanceledException"/> is rethrown to allow higher-level handlers to respond accordingly.
     /// </remarks>
-    public static async ValueTask Delay(int minValue, int maxValue, ILogger? logger, CancellationToken cancellationToken = default)
+    public static async ValueTask Delay(int minValue, int maxValue, ILogger? logger = null, CancellationToken cancellationToken = default)
     {
         int ms = Next(minValue, maxValue);
 
