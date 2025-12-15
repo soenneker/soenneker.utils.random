@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 
 namespace Soenneker.Utils.Random;
 
@@ -23,6 +24,7 @@ public static class RandomUtil
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="maxValue"/> is less than 0.</exception>
     [Pure]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Next(int maxValue)
     {
         return System.Random.Shared.Next(maxValue);
@@ -37,6 +39,7 @@ public static class RandomUtil
     /// </returns>
     /// <exception cref="ArgumentOutOfRangeException"><paramref name="minValue"/> is greater than <paramref name="maxValue"/>.</exception>
     [Pure]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int Next(int minValue, int maxValue)
     {
         return System.Random.Shared.Next(minValue, maxValue);
@@ -45,6 +48,7 @@ public static class RandomUtil
     /// <summary>Returns a random floating-point number that is greater than or equal to 0.0, and less than 1.0.</summary>
     /// <returns>A double-precision floating point number that is greater than or equal to 0.0, and less than 1.0.</returns>
     [Pure]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double NextDouble()
     {
         return System.Random.Shared.NextDouble();
@@ -53,6 +57,7 @@ public static class RandomUtil
     /// <summary>Returns a random floating-point number that is between the range specified.</summary>
     /// <returns>A double-precision floating point number that is between the range specified.</returns>
     [Pure]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double NextDouble(double minValue, double maxValue)
     {
         return NextDouble() * (maxValue - minValue) + minValue;
@@ -64,9 +69,7 @@ public static class RandomUtil
     [Pure]
     public static int NextInt32()
     {
-        int firstBits = System.Random.Shared.Next(0, 1 << 4) << 28;
-        int lastBits = System.Random.Shared.Next(0, 1 << 28);
-        return firstBits | lastBits;
+        return (int)System.Random.Shared.NextInt64(int.MinValue, (long)int.MaxValue + 1);
     }
 
     /// <summary>
@@ -76,17 +79,16 @@ public static class RandomUtil
     [Pure]
     public static decimal NextDecimalUniform()
     {
-        var result = 1m;
+        decimal result;
 
-        // Essentially shouldn't ever happen that loops, but we have this here just in case
-        while (result >= 1)
+        do
         {
             int a = NextInt32();
             int b = NextInt32();
-            //The bits for 0.9999999999999999999999999999m are 542101086
             int c = System.Random.Shared.Next(542101087);
             result = new decimal(a, b, c, false, 28);
         }
+        while (result >= 1m);
 
         return result;
     }
@@ -97,8 +99,8 @@ public static class RandomUtil
     [Pure]
     public static decimal NextDecimalUniform(decimal minValue, decimal maxValue, int? roundingDigits = null)
     {
-        decimal nextDecimalUniform = NextDecimalUniform();
-        decimal result = maxValue * nextDecimalUniform + minValue * (1 - nextDecimalUniform);
+        decimal u = NextDecimalUniform();
+        decimal result = minValue + (maxValue - minValue) * u;
 
         if (roundingDigits != null)
             result = Math.Round(result, roundingDigits.Value);
@@ -124,44 +126,39 @@ public static class RandomUtil
     [Pure]
     public static T WeightedRandomSelection<T>(IList<T> items, IList<double> weights)
     {
-        ArgumentNullException.ThrowIfNull(items, nameof(items));
-        ArgumentNullException.ThrowIfNull(weights, nameof(weights));
+        ArgumentNullException.ThrowIfNull(items);
+        ArgumentNullException.ThrowIfNull(weights);
 
-        if (items.Count == 0 || items.Count != weights.Count)
+        int count = items.Count;
+
+        if (count == 0 || count != weights.Count)
             throw new ArgumentException("Invalid input: items and weights must have the same length and not be empty.");
 
         double totalWeight = 0;
 
-        for (var i = 0; i < weights.Count; i++)
+        for (var i = 0; i < count; i++)
         {
-            double weight = weights[i];
-
-            if (weight < 0)
+            double w = weights[i];
+            if (w < 0)
                 throw new ArgumentException("All weights must be non-negative.");
-
-            totalWeight += weight;
+            totalWeight += w;
         }
 
-        // Total weight must be greater than zero for a valid selection. (All have 0 chance?)
         if (totalWeight == 0)
             throw new ArgumentException("Total weight must be greater than zero.");
 
         double randomValue = NextDouble() * totalWeight;
 
-        double cumulativeWeight = 0;
+        double cumulative = 0;
 
-        for (var i = 0; i < items.Count; i++)
+        for (var i = 0; i < count; i++)
         {
-            cumulativeWeight += weights[i];
-
-            if (randomValue < cumulativeWeight)
-            {
+            cumulative += weights[i];
+            if (randomValue < cumulative)
                 return items[i];
-            }
         }
 
-        // This line should never be reached, but included for compiler satisfaction
-        return items[^1];
+        return items[count - 1];
     }
 
     /// <summary>
@@ -187,20 +184,27 @@ public static class RandomUtil
     /// - **Logging:** Ensure that the provided <paramref name="logger"/> is appropriately configured to handle debug-level logs.
     /// - **Cancellation:** If the operation is canceled, a <see cref="TaskCanceledException"/> is rethrown to allow higher-level handlers to respond accordingly.
     /// </remarks>
-    public static async ValueTask Delay(int minValue, int maxValue, ILogger? logger = null, CancellationToken cancellationToken = default)
+    public static ValueTask Delay(int minValue, int maxValue, ILogger? logger = null, CancellationToken cancellationToken = default)
     {
         int ms = Next(minValue, maxValue);
 
-        logger?.LogDebug("Delaying for {ms}ms...", ms);
+        if (logger is null)
+            return new ValueTask(Task.Delay(ms, cancellationToken));
 
+        logger.LogDebug("Delaying for {ms}ms...", ms);
+
+        return DelayLogged(ms, logger, cancellationToken);
+    }
+
+    private static async ValueTask DelayLogged(int ms, ILogger logger, CancellationToken cancellationToken)
+    {
         try
         {
             await Task.Delay(ms, cancellationToken).ConfigureAwait(false);
         }
         catch (TaskCanceledException)
         {
-            // Optionally log the cancellation
-            logger?.LogDebug("Delay was canceled ");
+            logger.LogDebug("Delay was canceled");
             throw;
         }
     }
