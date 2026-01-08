@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
@@ -16,6 +17,9 @@ namespace Soenneker.Utils.Random;
 /// </remarks>
 public static class RandomUtil
 {
+    private const int _decimalScale = 28;
+    private const int _cUpperExclusive = 542_101_087;
+
     /// <summary>Returns a non-negative random integer that is less than the specified maximum.</summary>
     /// <param name="maxValue">The exclusive upper bound of the random number to be generated. <paramref name="maxValue"/> must be greater than or equal to 0.</param>
     /// <returns>
@@ -77,20 +81,29 @@ public static class RandomUtil
     /// </summary>
     /// <returns>Values [0.0000000000000000000000000000, 0.9999999999999999999999999999)</returns>
     [Pure]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static decimal NextDecimalUniform()
     {
-        decimal result;
-
-        do
+#pragma warning disable CA2014 // stackalloc is fixed-size (12 bytes) and safe in bounded loop
+        while (true)
         {
-            int a = NextInt32();
-            int b = NextInt32();
-            int c = System.Random.Shared.Next(542101087);
-            result = new decimal(a, b, c, false, 28);
-        }
-        while (result >= 1m);
+            Span<byte> bytes = stackalloc byte[12];
+            System.Random.Shared.NextBytes(bytes);
 
-        return result;
+            int a = BinaryPrimitives.ReadInt32LittleEndian(bytes);
+            int b = BinaryPrimitives.ReadInt32LittleEndian(bytes.Slice(4));
+            int c = BinaryPrimitives.ReadInt32LittleEndian(bytes.Slice(8));
+
+            // Map c into [0, _cUpperExclusive)
+            // (uint) makes negatives well-defined; modulo bias here is tiny
+            c = (int)((uint)c % _cUpperExclusive);
+
+            var result = new decimal(a, b, c, isNegative: false, scale: _decimalScale);
+
+            if (result < 1m)
+                return result;
+        }
+#pragma warning restore CA2014
     }
 
     /// <summary>
@@ -115,7 +128,7 @@ public static class RandomUtil
     [Pure]
     public static decimal NextDecimal(decimal minValue, decimal maxValue, int? roundingDigits = null)
     {
-        decimal result = (decimal) NextDouble() * (maxValue - minValue) + minValue;
+        decimal result = (decimal)NextDouble() * (maxValue - minValue) + minValue;
 
         if (roundingDigits != null)
             result = Math.Round(result, roundingDigits.Value);
@@ -130,35 +143,34 @@ public static class RandomUtil
         ArgumentNullException.ThrowIfNull(weights);
 
         int count = items.Count;
-
-        if (count == 0 || count != weights.Count)
+        if ((uint)count == 0 || count != weights.Count)
             throw new ArgumentException("Invalid input: items and weights must have the same length and not be empty.");
 
-        double totalWeight = 0;
+        double total = 0;
+        int selectedIndex = -1;
 
         for (var i = 0; i < count; i++)
         {
             double w = weights[i];
             if (w < 0)
                 throw new ArgumentException("All weights must be non-negative.");
-            totalWeight += w;
+
+            if (w == 0)
+                continue;
+
+            // Increase running total, then choose current item with probability w/total.
+            total += w;
+
+            // Equivalent to: if random in [0,total) falls in the newest slice (total-w, total)
+            // Using NextDouble()*total < w avoids needing a second pass.
+            if (NextDouble() * total < w)
+                selectedIndex = i;
         }
 
-        if (totalWeight == 0)
+        if (selectedIndex < 0)
             throw new ArgumentException("Total weight must be greater than zero.");
 
-        double randomValue = NextDouble() * totalWeight;
-
-        double cumulative = 0;
-
-        for (var i = 0; i < count; i++)
-        {
-            cumulative += weights[i];
-            if (randomValue < cumulative)
-                return items[i];
-        }
-
-        return items[count - 1];
+        return items[selectedIndex];
     }
 
     /// <summary>
@@ -200,7 +212,8 @@ public static class RandomUtil
     {
         try
         {
-            await Task.Delay(ms, cancellationToken).ConfigureAwait(false);
+            await Task.Delay(ms, cancellationToken)
+                      .ConfigureAwait(false);
         }
         catch (TaskCanceledException)
         {
