@@ -15,7 +15,7 @@
     <PackageReference Include="AwesomeAssertions" Version="9.4.0" /><PackageReference Include="xUnit.v3" Version="3.2.2" /></ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Soenneker.Utils.Random.csproj" />
+    <ProjectReference Include="..\..\src\Soenneker.Utils.Random\Soenneker.Utils.Random.csproj" />
   </ItemGroup>
 
     <ItemGroup>
