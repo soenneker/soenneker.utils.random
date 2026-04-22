@@ -1,6 +1,5 @@
 using AwesomeAssertions;
 using System.Collections.Generic;
-using Xunit;
 
 namespace Soenneker.Utils.Random.Tests;
 
@@ -49,7 +48,7 @@ public class RandomUtilTests
         result.Should().BeInRange(min, max);
     }
 
-    [Fact]
+    [Test]
     public void WeightedRandomSelection_should_give_back_result()
     {
         List<string> items =
