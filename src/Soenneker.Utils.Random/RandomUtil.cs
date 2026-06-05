@@ -136,6 +136,13 @@ public static class RandomUtil
         return result;
     }
 
+    /// <summary>
+    /// Executes the weighted random selection operation.
+    /// </summary>
+    /// <typeparam name="T">The T type.</typeparam>
+    /// <param name="items">The items.</param>
+    /// <param name="weights">The weights.</param>
+    /// <returns>The result of the operation.</returns>
     [Pure]
     public static T WeightedRandomSelection<T>(IList<T> items, IList<double> weights)
     {
