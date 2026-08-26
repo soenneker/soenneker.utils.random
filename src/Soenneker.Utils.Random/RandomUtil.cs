@@ -84,10 +84,10 @@ public static class RandomUtil
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static decimal NextDecimalUniform()
     {
-#pragma warning disable CA2014 // stackalloc is fixed-size (12 bytes) and safe in bounded loop
+        Span<byte> bytes = stackalloc byte[12];
+
         while (true)
         {
-            Span<byte> bytes = stackalloc byte[12];
             System.Random.Shared.NextBytes(bytes);
 
             int a = BinaryPrimitives.ReadInt32LittleEndian(bytes);
@@ -103,7 +103,6 @@ public static class RandomUtil
             if (result < 1m)
                 return result;
         }
-#pragma warning restore CA2014
     }
 
     /// <summary>
