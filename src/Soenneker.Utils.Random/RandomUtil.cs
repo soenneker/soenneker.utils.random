@@ -70,6 +70,7 @@ public static class RandomUtil
     /// <summary>
     /// Returns an Int32 with a random value across the entire range of possible values.
     /// </summary>
+    /// <returns>An Int32 with a random value across the entire range of possible values.</returns>
     [Pure]
     public static int NextInt32()
     {
@@ -108,6 +109,7 @@ public static class RandomUtil
     /// <summary>
     /// Provides a random decimal value in the range with a uniform and discrete distribution.
     /// </summary>
+    /// <returns>Provides a random decimal value in the range with a uniform and discrete distribution.</returns>
     [Pure]
     public static decimal NextDecimalUniform(decimal minValue, decimal maxValue, int? roundingDigits = null)
     {
@@ -124,6 +126,7 @@ public static class RandomUtil
     /// Provides a floating-point number between the range (using <see cref="NextDouble()"/>). For a uniform and discrete decimal, use <see cref="NextDecimalUniform()"/>. 
     /// </summary>
     /// 
+    /// <returns>Provides a floating-point number between the range (using <see cref="NextDouble()"/>). For a uniform and discrete decimal, use <see cref="NextDecimalUniform()"/>.</returns>
     [Pure]
     public static decimal NextDecimal(decimal minValue, decimal maxValue, int? roundingDigits = null)
     {
@@ -136,12 +139,12 @@ public static class RandomUtil
     }
 
     /// <summary>
-    /// Executes the weighted random selection operation.
+    /// Selects an item with probability proportional to its corresponding non-negative weight.
     /// </summary>
-    /// <typeparam name="T">The T type.</typeparam>
-    /// <param name="items">The items.</param>
-    /// <param name="weights">The weights.</param>
-    /// <returns>The result of the operation.</returns>
+    /// <typeparam name="T">The delegate result type.</typeparam>
+    /// <param name="items">The candidate items.</param>
+    /// <param name="weights">A corresponding weight for each item.</param>
+    /// <returns>The selected item.</returns>
     [Pure]
     public static T WeightedRandomSelection<T>(IList<T> items, IList<double> weights)
     {
