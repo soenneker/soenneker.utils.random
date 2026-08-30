@@ -78,9 +78,9 @@ public static class RandomUtil
     }
 
     /// <summary>
-    /// Provides a random decimal value in the range with a uniform and discrete distribution.
+    /// Provides a random decimal value in the unit interval from a high-resolution discrete distribution.
     /// </summary>
-    /// <returns>Values [0.0000000000000000000000000000, 0.9999999999999999999999999999)</returns>
+    /// <returns>A value greater than or equal to zero and less than one.</returns>
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static decimal NextDecimalUniform()
@@ -96,7 +96,7 @@ public static class RandomUtil
             int c = BinaryPrimitives.ReadInt32LittleEndian(bytes.Slice(8));
 
             // Map c into [0, _cUpperExclusive)
-            // (uint) makes negatives well-defined; modulo bias here is tiny
+            // (uint) makes negatives well-defined; this introduces a small modulo bias.
             c = (int)((uint)c % _cUpperExclusive);
 
             var result = new decimal(a, b, c, isNegative: false, scale: _decimalScale);
@@ -155,29 +155,36 @@ public static class RandomUtil
         if ((uint)count == 0 || count != weights.Count)
             throw new ArgumentException("Invalid input: items and weights must have the same length and not be empty.");
 
-        double total = 0;
-        int selectedIndex = -1;
+        double maxWeight = 0;
 
         for (var i = 0; i < count; i++)
         {
             double w = weights[i];
-            if (w < 0)
-                throw new ArgumentException("All weights must be non-negative.");
+            if (!double.IsFinite(w) || w < 0)
+                throw new ArgumentException("All weights must be finite and non-negative.");
 
-            if (w == 0)
-                continue;
-
-            // Increase running total, then choose current item with probability w/total.
-            total += w;
-
-            // Equivalent to: if random in [0,total) falls in the newest slice (total-w, total)
-            // Using NextDouble()*total < w avoids needing a second pass.
-            if (NextDouble() * total < w)
-                selectedIndex = i;
+            if (w > maxWeight)
+                maxWeight = w;
         }
 
-        if (selectedIndex < 0)
+        if (maxWeight == 0)
             throw new ArgumentException("Total weight must be greater than zero.");
+
+        double total = 0;
+        var selectedIndex = 0;
+
+        for (var i = 0; i < count; i++)
+        {
+            double normalizedWeight = weights[i] / maxWeight;
+
+            if (normalizedWeight == 0)
+                continue;
+
+            total += normalizedWeight;
+
+            if (NextDouble() * total < normalizedWeight)
+                selectedIndex = i;
+        }
 
         return items[selectedIndex];
     }
