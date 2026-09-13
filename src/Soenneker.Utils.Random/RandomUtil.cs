@@ -17,6 +17,11 @@ namespace Soenneker.Utils.Random;
 /// </remarks>
 public static class RandomUtil
 {
+    private static readonly Action<ILogger, int, Exception?> _logDelay =
+        LoggerMessage.Define<int>(LogLevel.Debug, new EventId(0), "Delaying for {ms}ms...");
+    private static readonly Action<ILogger, Exception?> _logCanceled =
+        LoggerMessage.Define(LogLevel.Debug, new EventId(0), "Delay was canceled");
+
     private const int _decimalScale = 28;
     private const int _cUpperExclusive = 542_101_087;
 
@@ -150,43 +155,48 @@ public static class RandomUtil
     {
         ArgumentNullException.ThrowIfNull(items);
         ArgumentNullException.ThrowIfNull(weights);
-
         int count = items.Count;
-        if ((uint)count == 0 || count != weights.Count)
+        if (count == 0 || count != weights.Count)
             throw new ArgumentException("Invalid input: items and weights must have the same length and not be empty.");
 
-        double maxWeight = 0;
-
-        for (var i = 0; i < count; i++)
+        double total = 0;
+        double maximum = 0;
+        for (int i = 0; i < count; i++)
         {
-            double w = weights[i];
-            if (!double.IsFinite(w) || w < 0)
+            double weight = weights[i];
+            if (!double.IsFinite(weight) || weight < 0)
                 throw new ArgumentException("All weights must be finite and non-negative.");
-
-            if (w > maxWeight)
-                maxWeight = w;
+            total += weight;
+            maximum = Math.Max(maximum, weight);
         }
-
-        if (maxWeight == 0)
+        if (maximum == 0)
             throw new ArgumentException("Total weight must be greater than zero.");
 
-        double total = 0;
-        var selectedIndex = 0;
-
-        for (var i = 0; i < count; i++)
+        double scale = 1;
+        // Rescale overflow and subnormal totals; a subnormal random threshold
+        // otherwise has too few representable values to preserve the weights.
+        if (double.IsPositiveInfinity(total) || total < 2.2250738585072014E-308)
         {
-            double normalizedWeight = weights[i] / maxWeight;
-
-            if (normalizedWeight == 0)
-                continue;
-
-            total += normalizedWeight;
-
-            if (NextDouble() * total < normalizedWeight)
-                selectedIndex = i;
+            scale = maximum;
+            total = 0;
+            for (int i = 0; i < count; i++)
+                total += weights[i] / scale;
         }
 
-        return items[selectedIndex];
+        double remaining = NextDouble() * total;
+        int lastPositive = 0;
+        for (int i = 0; i < count; i++)
+        {
+            double weight = weights[i] / scale;
+            if (weight <= 0)
+                continue;
+            lastPositive = i;
+            if (remaining < weight)
+                return items[i];
+            remaining -= weight;
+        }
+        // Floating-point summation can round the target to the upper endpoint.
+        return items[lastPositive];
     }
 
     /// <summary>
@@ -219,7 +229,7 @@ public static class RandomUtil
         if (logger is null)
             return new ValueTask(Task.Delay(ms, cancellationToken));
 
-        logger.LogDebug("Delaying for {ms}ms...", ms);
+        _logDelay(logger, ms, null);
 
         return DelayLogged(ms, logger, cancellationToken);
     }
@@ -233,7 +243,7 @@ public static class RandomUtil
         }
         catch (TaskCanceledException)
         {
-            logger.LogDebug("Delay was canceled");
+            _logCanceled(logger, null);
             throw;
         }
     }
