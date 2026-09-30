@@ -43,7 +43,7 @@ public class PerformanceRegressionTests
     }
 
     [Test]
-    public async System.Threading.Tasks.Task Delay_preserves_structured_logging()
+    public async System.Threading.Tasks.ValueTask Delay_preserves_structured_logging()
     {
         var logger = new RecordingLogger();
         await RandomUtil.Delay(0, 0, logger);
