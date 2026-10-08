@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using AwesomeAssertions;
 using Microsoft.Extensions.Logging;
+using System.Threading;
 
 namespace Soenneker.Utils.Random.Tests;
 
@@ -43,10 +44,10 @@ public class PerformanceRegressionTests
     }
 
     [Test]
-    public async System.Threading.Tasks.ValueTask Delay_preserves_structured_logging()
+    public async System.Threading.Tasks.ValueTask Delay_preserves_structured_logging(CancellationToken cancellationToken)
     {
         var logger = new RecordingLogger();
-        await RandomUtil.Delay(0, 0, logger);
+        await RandomUtil.Delay(0, 0, logger, cancellationToken: cancellationToken);
         logger.Message.Should().Be("Delaying for 0ms...");
         logger.Milliseconds.Should().Be(0);
     }
